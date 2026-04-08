@@ -1,0 +1,18 @@
+node_modules/
+
+# Ignore environment variables
+.env
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore build folders
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+/server/serviceAccountKey.json
