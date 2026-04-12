@@ -1,6 +1,10 @@
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 
+
+// @desc    Get all users with pagination
+// @route   GET /api/users
+// @access  Private (Admin only)
 export const getAllUsers = async (req, res) => {
 	try {
 		if (!admin.apps.length) {
@@ -53,3 +57,4 @@ export const getAllUsers = async (req, res) => {
 		});
 	}
 };
+
