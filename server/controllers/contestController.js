@@ -1,4 +1,4 @@
-import { createContestSchema } from "../models/Contest";
+import { createContestSchema, updateContestSchema } from "../models/Contest";
 import { getFirestore } from "firebase-admin/firestore";
 
 // @desc Create a new contest
@@ -127,3 +127,28 @@ export const deleteContestById = async(req, res) => {
 // @desc Update contest details by ID
 // @route PUT /api/contests/update/:contestId
 // @access Admins only
+export const updateContestById = async (req, res) => {
+    try{
+        const { contestId } = req.params;
+        const parsedData = updateContestSchema.parse(req.body);
+        const db = getFirestore();
+        const contestRef = db.collection('contests').doc(contestId);
+        if(!(await contestRef.get()).exists) {
+            return res.status(404).json({ message: "Contest not found" });
+        }
+        await contestRef.update({
+            ...parsedData,
+            updatedAt: new Date()
+        });
+        res.status(200).json({ message: "Contest updated successfully" });
+    }
+    catch(error){
+        if(error.name === 'ZodError'){
+            return res.status(400).json({
+                message: "Validation failed",
+                errors: error.errors
+            });
+        }
+        res.status(400).json({ message: "Error updating contest", error: error.message });
+    }
+}
