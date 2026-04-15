@@ -45,10 +45,13 @@ export const getContests = async (req, res) => {
     try{
         const db = getFirestore();
         const contestsSnapshot = await db.collection('contests').get();
-        const contests = contestsSnapshot.docs.map(doc => ({
+        const now = new Date();
+        const contests = contestsSnapshot.docs
+            .filter(doc => doc.data().endTime > now)
+            .map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+            }));
         res.status(200).json({ contests });
 
     }
