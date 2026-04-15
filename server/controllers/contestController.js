@@ -104,3 +104,22 @@ export const getContestById = async (req, res) => {
         res.status(400).json({ message: "Error fetching contest details", error: error.message });
     }
 }
+
+// @desc Delete a contest by ID
+// @route DELETE /api/contests/:contestId
+// @access Admins only
+export const deleteContestById = async(req, res) => {
+    try{
+        const { contestId } = req.params;
+        const db = getFirestore();
+        const contestRef = db.collection('contests').doc(contestId);
+        if(!(await contestRef.get()).exists) {
+            return res.status(404).json({ message: "Contest not found" });
+        }
+        await contestRef.delete();
+        res.status(200).json({ message: "Contest deleted successfully" });
+    }
+    catch(error){
+        res.status(400).json({ message: "Error deleting contest", error: error.message });
+    }
+}
