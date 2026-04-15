@@ -1,6 +1,6 @@
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
-
+import { createUserSchema, updateUserSchema } from '../models/User.js';
 
 // @desc    Get all users with pagination
 // @route   GET /api/users
@@ -64,28 +64,112 @@ export const getAllUsers = async (req, res) => {
 // @access Private (Super Admin only)
 export const createUser = async (req, res) => {
 	try {
-		const { email, password, role } = req.body;
-		if (!email || !password || !role) {
-			return res.status(400).json({ message: 'Email, password, and role are required.' 
-			});
-		}
-		const userRecord = await admin.auth().createUser({
-			email,
-			password,
-			role
-			});
+		//  Validate input
+		const parsedData = createUserSchema.parse(req.body);
 
+		// Create Firebase Auth user
+		const userRecord = await admin.auth().createUser({
+			email: parsedData.email,
+			password: parsedData.password
+		});
+
+		const db = getFirestore();
+		const now = new Date();
+
+		// Store in Firestore
+		await db.collection('users').doc(userRecord.uid).set({
+			uid: userRecord.uid,
+			name: parsedData.name,
+			email: parsedData.email,
+			role: parsedData.role,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		// 4. Set custom claims 
+		await admin.auth().setCustomUserClaims(userRecord.uid, {
+			role: parsedData.role
+		});
+
+		//
 		return res.status(201).json({
 			success: true,
-			message: 'User created successfully.',
-			user: userRecord
+			message: 'User created successfully',
+			uid: userRecord.uid
+		});
+
+	} catch (error) {
+
+		// Handle Zod errors properly
+		if (error.name === 'ZodError') {
+			return res.status(400).json({
+				success: false,
+				message: 'Validation failed',
+				errors: error.errors
 			});
+		}
 
-
-	} catch(error){
+		// Firebase / other errors
 		return res.status(500).json({
 			success: false,
-			message: 'Failed to create user.',
+			message: 'Failed to create user',
+			error: error.message
+		});
+	}
+};
+
+// @desc Update user details (Super Admin only)
+// @route PUT /api/users/update/:id
+// @access Private (Super Admin only)
+export const updateUser = async (req, res) => {
+	try{
+		const userId = req.params.id;
+		const parsedData = updateUserSchema.parse(req.body);
+
+		const db = getFirestore();
+
+		const userRef = db.collection('users').doc(userId);
+
+		const userSnap = await userRef.get();
+		if(!userSnap.exists){
+			return res.status(404).json({
+				success: false,
+				message: 'User not found'
+			});
+		}
+
+		const updateData = {
+			updatedAt: new Date()
+		}
+		if(parsedData.name) updateData.name = parsedData.name;
+		if(parsedData.email) updateData.email = parsedData.email;
+		if(parsedData.role) updateData.role = parsedData.role;
+
+		await userRef.update(updateData);
+
+		// Firebase Auth Update if email or password is being updated
+		if (parsedData.email || parsedData.password) {
+			await admin.auth().updateUser(uid, {
+				email: parsedData.email,
+				password: parsedData.password
+			});
+		}
+
+		if(parsedData.role){
+			await admin.auth().setCustomUserClaims(uid, {
+				role: parsedData.role
+			})
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: 'User updated successfully'
+		});
+	}
+	catch(error){
+		return res.status(500).json({
+			success: false,
+			message: 'Failed to update user',
 			error: error.message
 		});
 	}
