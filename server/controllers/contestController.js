@@ -83,3 +83,24 @@ export const addQuestionsToContest = async (req, res) => {
         res.status(400).json({ message: "Error adding questions to contest", error: error.message });
     }
 }
+
+// @desc Get contest details by ID
+// @route GET /api/contests/:contestId
+// @access Admins and Teachers
+export const getContestById = async (req, res) => {
+    try{
+        const { contestId } = req.params;   
+        const db = getFirestore();
+        const contestDoc = await db.collection('contests').doc(contestId).get();    
+        if(!contestDoc.exists) {
+            return res.status(404).json({ message: "Contest not found" });
+        }
+        res.status(200).json({
+            id: contestDoc.id,
+            ...contestDoc.data()
+        });
+    }  
+    catch(error){
+        res.status(400).json({ message: "Error fetching contest details", error: error.message });
+    }
+}
