@@ -56,3 +56,30 @@ export const getContests = async (req, res) => {
         res.status(400).json({ message: "Error fetching contests", error: error.message });
     }
 }
+
+// @desc Add questions to a contest
+// @route POST /api/contests/:contestId/add-questions
+// @access Teachers only
+export const addQuestionsToContest = async (req, res) => {
+    try{
+        const { contestId } = req.params;
+        const { questions } = req.body; // Expecting an array of question IDs
+
+        if(!Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({ message: "Questions must be a non-empty array" });
+        }
+        const db = getFirestore();
+        const contestRef = db.collection('contests').doc(contestId);
+        if(!(await contestRef.get()).exists) {
+            return res.status(404).json({ message: "Contest not found" });
+        }
+        await contestRef.update({
+            questions: questions,
+            updatedAt: new Date()
+        });
+        res.status(200).json({ message: "Questions added to contest successfully" });
+    }
+    catch(error){
+        res.status(400).json({ message: "Error adding questions to contest", error: error.message });
+    }
+}
