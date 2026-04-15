@@ -58,3 +58,35 @@ export const getAllUsers = async (req, res) => {
 	}
 };
 
+
+// @desc Create a new user (Admin only)
+// @route POST /api/users/create
+// @access Private (Super Admin only)
+export const createUser = async (req, res) => {
+	try {
+		const { email, password, role } = req.body;
+		if (!email || !password || !role) {
+			return res.status(400).json({ message: 'Email, password, and role are required.' 
+			});
+		}
+		const userRecord = await admin.auth().createUser({
+			email,
+			password,
+			role
+			});
+
+		return res.status(201).json({
+			success: true,
+			message: 'User created successfully.',
+			user: userRecord
+			});
+
+
+	} catch(error){
+		return res.status(500).json({
+			success: false,
+			message: 'Failed to create user.',
+			error: error.message
+		});
+	}
+};
