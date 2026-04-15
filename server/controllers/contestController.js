@@ -39,7 +39,7 @@ export const createContest = async (req, res) => {
 
 
 // @desc Get all contests
-// @route GET /api/contests
+// @route GET /api/contests/active
 // @access Admins and Teachers
 export const getContests = async (req, res) => {
     try{
@@ -106,7 +106,7 @@ export const getContestById = async (req, res) => {
 }
 
 // @desc Delete a contest by ID
-// @route DELETE /api/contests/:contestId
+// @route DELETE /api/contests/delete/:contestId
 // @access Admins only
 export const deleteContestById = async(req, res) => {
     try{
@@ -123,3 +123,7 @@ export const deleteContestById = async(req, res) => {
         res.status(400).json({ message: "Error deleting contest", error: error.message });
     }
 }
+
+// @desc Update contest details by ID
+// @route PUT /api/contests/update/:contestId
+// @access Admins only
