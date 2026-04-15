@@ -9,6 +9,8 @@ export const createContestSchema = z.object({
     startTime: z.coerce.date(), // accept ISO string and convert to Date
     endTime: z.coerce.date(), // accept ISO string and convert to Date
 
+    syllabus: z.string().min(10), // minimum 10 characters
+
 
     //pricing 
     entryFee: z.coerce.number().min(0), // accept string and convert to number
