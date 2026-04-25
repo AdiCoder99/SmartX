@@ -46,10 +46,10 @@ export const updateContestSchema = z.object({
     title: z.string().min(5).optional(),
     description: z.string().optional(),
     startTime: z.coerce.date().optional(), // accept ISO string and convert to Date
-    endTime: z.coerce.date().optional(), // accept ISO string and convert to Date
+    endTime: z.coerce.date().optional(), 
     syllabus: z.string().min(10).optional(),
     entryFee: z.coerce.number().min(0).optional(), // accept string and convert to number
-    prizePool: z.coerce.number().min(0).optional() // accept string and convert to number
+    prizePool: z.coerce.number().min(0).optional() 
 })
 .strict()
 .refine((data) => {
